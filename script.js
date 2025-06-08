@@ -14,7 +14,7 @@ function gameBoard() {
 
   const printBoard = () => {
     const boardWithCellValues = board.map((row) =>
-      row.map((column) => column.getValue())
+      row.map((cell) => cell.getValue())
     );
     console.log(boardWithCellValues);
   };
@@ -42,16 +42,17 @@ function cell() {
   return { getValue, setMarker };
 }
 
-function gameController(player1Name = "player1", player2Name = "player2") {
+function gameController(player1Name, player2Name) {
   const board = gameBoard();
   const players = [
     { name: player1Name, marker: "X" },
-    { name: player2Name, marker: "Y" },
+    { name: player2Name, marker: "O" },
   ];
   let activePlayer = players[0];
   let gameStatus = "continues";
   let gameTurn = 0;
 
+  const getGameStatus = () => gameStatus;
   const getActivePlayer = () => activePlayer;
   const switchPlayerTurn = () => {
     activePlayer = activePlayer === players[0] ? players[1] : players[0];
@@ -106,7 +107,7 @@ function gameController(player1Name = "player1", player2Name = "player2") {
   ];
 
   const findWinner = () => {
-    let winner = "";
+    let winner = null;
     const boardValues = board.getBoard();
 
     for (const combination of winnerCombinations) {
@@ -131,7 +132,13 @@ function gameController(player1Name = "player1", player2Name = "player2") {
   };
 
   const playRound = (row, column) => {
-    if (gameStatus === "over") {
+    if (gameStatus !== "continues") {
+      return;
+    }
+
+    const targetCellValue = board.getBoard()[row][column].getValue();
+    if (targetCellValue !== "") {
+      console.log("Cell is already occupied");
       return;
     }
 
@@ -141,11 +148,7 @@ function gameController(player1Name = "player1", player2Name = "player2") {
       }'s token into row:${row} column:${column}...`
     );
 
-    const isSquareMarked = board.markCell(
-      row,
-      column,
-      getActivePlayer().marker
-    );
+    board.markCell(row, column, getActivePlayer().marker);
 
     const winner = findWinner();
     if (winner) {
@@ -155,20 +158,96 @@ function gameController(player1Name = "player1", player2Name = "player2") {
       return;
     }
 
-    switchPlayerTurn();
-    printNewRound();
-    gameTurn++;
     if (gameTurn === 8 && !winner) {
-      gameStatus = "over";
+      gameStatus = "draw";
       board.printBoard();
       console.log("It’s a draw!");
       return;
     }
+
+    switchPlayerTurn();
+    printNewRound();
+    gameTurn++;
   };
 
   printNewRound();
 
-  return { getActivePlayer, playRound };
+  return {
+    getActivePlayer,
+    playRound,
+    getBoard: board.getBoard,
+    getGameStatus,
+  };
 }
 
-const game = gameController();
+function screenController(player1Name, player2Name) {
+  const game = gameController(player1Name, player2Name);
+  const boardDiv = document.querySelector(".board");
+  const infoScreen = document.querySelector(".info-screen");
+  const resetBtn = document.querySelector(".reset-button");
+
+  const updateScreen = () => {
+    boardDiv.textContent = "";
+
+    const board = game.getBoard();
+    const activePlayer = game.getActivePlayer();
+
+    if (game.getGameStatus() === "continues") {
+      infoScreen.textContent = `${activePlayer.name}'s turn...`;
+    } else if (game.getGameStatus() === "draw") {
+      infoScreen.textContent = "It’s a draw!";
+      resetBtn.classList.remove("hidden");
+    } else {
+      infoScreen.textContent = `${activePlayer.name} wins the game.`;
+      resetBtn.classList.remove("hidden");
+    }
+
+    board.forEach((row, rowIndex) => {
+      row.forEach((cell, columnIndex) => {
+        const cellElement = document.createElement("div");
+        cellElement.classList.add("cell");
+        cellElement.dataset.row = rowIndex;
+        cellElement.dataset.column = columnIndex;
+        cellElement.textContent = `${cell.getValue()}`;
+        boardDiv.appendChild(cellElement);
+      });
+    });
+  };
+
+  boardDiv.addEventListener("click", (e) => {
+    const selectedRow = e.target.dataset.row;
+    const selectedColumn = e.target.dataset.column;
+
+    if (!selectedRow && !selectedColumn) return;
+
+    game.playRound(selectedRow, selectedColumn);
+    updateScreen();
+  });
+
+  updateScreen();
+}
+
+function getUserInput() {
+  const nameForm = document.querySelector(".player-name-form");
+  const clearBtn = document.querySelector(".clear-btn");
+  const resetBtn = document.querySelector(".reset-button");
+
+  nameForm.addEventListener("submit", (e) => {
+    e.preventDefault;
+    const formData = new FormData(nameForm);
+    const player1Name = formData.get("player-one-name")
+      ? formData.get("player-one-name")
+      : "Player 1";
+    const player2Name = formData.get("player-two-name")
+      ? formData.get("player-two-name")
+      : "Player 2";
+    resetBtn.classList.add("hidden");
+    screenController(player1Name, player2Name);
+  });
+
+  clearBtn.addEventListener("click", () => {
+    nameForm.reset();
+  });
+}
+
+getUserInput();
