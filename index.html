@@ -10,7 +10,41 @@
 </head>
 
 <body>
-  <p>You can play the game through console by using "<u>game.playRound( row, column )</u>" command</p>
+  <main>
+    <form method="dialog" class="player-name-form">
+      <div class="input-wrapper">
+        <div>
+          <label for="player-one-name">Player 1 Name:</label>
+          <input type="text" name="player-one-name" id="player-one-name" placeholder="Player 1">
+        </div>
+        <div>
+          <label for="player-two-name">Player 2 Name:</label>
+          <input type="text" name="player-two-name" id="player-two-name" placeholder="Player 2">
+        </div>
+      </div>
+
+      <div class="button-wrapper">
+        <button type="button" class="clear-btn">Clear</button>
+        <button type="submit" class="start-btn">Start Game</button>
+      </div>
+      <section class="game-container">
+        <h1 class="info-screen">Click Start Game Button</h1>
+        <div class="board">
+          <div class="cell"></div>
+          <div class="cell"></div>
+          <div class="cell"></div>
+          <div class="cell"></div>
+          <div class="cell"></div>
+          <div class="cell"></div>
+          <div class="cell"></div>
+          <div class="cell"></div>
+          <div class="cell"></div>
+        </div>
+        <button class="reset-button hidden">Reset</button>
+      </section>
+    </form>
+  </main>
+
 
 </body>
 
